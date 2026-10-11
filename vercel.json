@@ -3,6 +3,14 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
+      "source": "/_proxy/index.pck",
+      "destination": "/api/jellycade?__path=/_proxy/index.pck"
+    },
+    {
+      "source": "/_proxy/index.wasm",
+      "destination": "/api/jellycade?__path=/_proxy/index.wasm"
+    },
+    {
       "source": "/_proxy/:host/:path*",
       "destination": "/api/jellycade?__host=:host&__path=/:path*"
     },
