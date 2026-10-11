@@ -1,9 +1,10 @@
-```html
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0b16">
   <title>Jellycade Hub</title>
   <style>
     * { box-sizing: border-box; }
@@ -11,33 +12,29 @@
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: Arial, sans-serif;
-      color: white;
-      background: #0b0b16;
       display: grid;
       place-items: center;
       padding: 24px;
+      background: #0b0b16;
+      color: #fff;
+      font-family: Arial, sans-serif;
     }
 
     main {
-      width: 100%;
-      max-width: 700px;
-      text-align: center;
+      width: min(100%, 700px);
       padding: 48px 24px;
+      text-align: center;
       border: 1px solid #343052;
       border-radius: 24px;
       background: linear-gradient(145deg, #19152e, #10101c);
       box-shadow: 0 20px 80px #0008;
     }
 
-    .logo {
-      font-size: 48px;
-      margin-bottom: 12px;
-    }
+    .logo { font-size: 52px; }
 
     h1 {
+      margin: 12px 0;
       font-size: clamp(36px, 8vw, 58px);
-      margin: 0 0 16px;
       letter-spacing: -2px;
     }
 
@@ -55,10 +52,12 @@
       color: white;
       text-decoration: none;
       font-weight: bold;
+      transition: background .2s, transform .2s;
     }
 
     .button:hover {
       background: #a08aff;
+      transform: translateY(-2px);
     }
 
     footer {
@@ -73,12 +72,13 @@
     <div class="logo">🎮</div>
     <h1>Jellycade Hub</h1>
     <p>Your gaming hub. One place.</p>
-    <p>Welcome to Jellycade Hub! We're building something awesome.</p>
-    <a class="button" href="https://jellycade.com/en">
-      Explore Jellycade ↗
+    <p>Launch Jellycade through your Hub.</p>
+
+    <a class="button" href="/en">
+      Explore Jellycade →
     </a>
+
     <footer>Jellycade Hub · Independent project</footer>
   </main>
 </body>
 </html>
-```
