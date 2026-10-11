@@ -180,15 +180,22 @@ export default async function handler(req, res) {
       slash === -1 ? rest : rest.slice(0, slash)
     ).toLowerCase();
 
-    if (!allowedHost(candidate)) {
+ 
+  if (allowedHost(candidate)) {
+      host = candidate;
+      path = slash === -1 ? "/" : rest.slice(slash);
+    } else if (cdnFromReferer && !req.query.__host) {
+      // Legacy game assets such as /_proxy/index.wasm
+      // use the already-validated CDN host from the referrer.
+      host = cdnFromReferer;
+      path = "/" + rest;
+    } else {
       return res.status(403).send("Blocked: unsupported Jellycade host.");
     }
-
-    host = candidate;
-    path = slash === -1 ? "/" : rest.slice(slash);
   } else if (cdnFromReferer && !req.query.__host) {
     host = cdnFromReferer;
   }
+
 
   if (!allowedHost(host)) {
     return res.status(403).send("Blocked: unsupported Jellycade host.");
