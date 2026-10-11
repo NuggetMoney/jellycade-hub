@@ -3,24 +3,20 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
-      "source": "/api/jellycade",
-      "destination": "/api/jellycade"
+      "source": "/_proxy/:host/:path*",
+      "destination": "/api/jellycade?__host=:host&__path=/:path*"
     },
     {
-      "source": "/_app/:path*",
-      "destination": "https://jellycade.com/_app/:path*"
+      "source": "/_proxy/:host",
+      "destination": "/api/jellycade?__host=:host&__path=/"
     },
     {
-      "source": "/manifest.webmanifest",
-      "destination": "https://jellycade.com/manifest.webmanifest"
+      "source": "/",
+      "destination": "/api/jellycade?__path=/"
     },
     {
-      "source": "/thumbnail-:path*",
-      "destination": "https://jellycade.com/thumbnail-:path*"
-    },
-    {
-      "source": "/:path((?!api/).*)",
-      "destination": "https://jellycade.com/:path"
+      "source": "/:path((?!api/jellycade).*)",
+      "destination": "/api/jellycade?__path=/:path"
     }
   ]
 }
