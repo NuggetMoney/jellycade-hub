@@ -7,7 +7,8 @@ const MAIN_HOSTS = new Set([
 ]);
 
 function allowedHost(host) {
-  host = host.toLowerCase();
+  if (typeof host !== "string") return false;
+  host = host.toLowerCase().replace(/\.$/, "");
 
   return (
     MAIN_HOSTS.has(host) ||
@@ -93,12 +94,9 @@ function rewriteHtml(html, destination, origin) {
           return match;
         }
 
-        if (!allowedHost(target.hostname)) {
-          return match;
-        }
+        if (!allowedHost(target.hostname)) return match;
 
         const mapped = proxyPath(target, origin);
-
         return `${attribute}=${quote}${mapped}${quote}`;
       } catch {
         return match;
@@ -107,13 +105,12 @@ function rewriteHtml(html, destination, origin) {
   );
 }
 
-function getCdnFromReferer(request, origin) {
+function getCdnFromReferer(req, origin) {
   try {
-    const referer = request.headers.referer;
+    const referer = req.headers.referer;
     if (!referer) return null;
 
     const ref = new URL(referer);
-
     if (ref.origin !== origin) return null;
 
     const match = ref.pathname.match(/^\/_proxy\/([^/]+)(?:\/|$)/);
@@ -160,19 +157,18 @@ export default async function handler(req, res) {
     return res.status(204).end();
   }
 
-  const incomingPath = getValue(req.query.__path)
+  let incomingPath = getValue(req.query.__path)
     ?? getValue(req.query.path)
     ?? "/en";
 
-  let host = (
+  let host = String(
     getValue(req.query.__host) || "jellycade.com"
   ).toLowerCase();
 
   let path = String(incomingPath);
-
   const cdnFromReferer = getCdnFromReferer(req, origin);
 
-  // Handle URLs such as /_proxy/<allowed-host>/<resource-path>.
+  // Route proxy URLs only to approved Jellycade hosts.
   if (path.startsWith("/_proxy/")) {
     const rest = path.slice("/_proxy/".length);
     const slash = rest.indexOf("/");
@@ -180,13 +176,11 @@ export default async function handler(req, res) {
       slash === -1 ? rest : rest.slice(0, slash)
     ).toLowerCase();
 
- 
-  if (allowedHost(candidate)) {
+    if (allowedHost(candidate)) {
       host = candidate;
       path = slash === -1 ? "/" : rest.slice(slash);
     } else if (cdnFromReferer && !req.query.__host) {
-      // Legacy game assets such as /_proxy/index.wasm
-      // use the already-validated CDN host from the referrer.
+      // Legacy game files may request /_proxy/index.wasm.
       host = cdnFromReferer;
       path = "/" + rest;
     } else {
@@ -195,7 +189,6 @@ export default async function handler(req, res) {
   } else if (cdnFromReferer && !req.query.__host) {
     host = cdnFromReferer;
   }
-
 
   if (!allowedHost(host)) {
     return res.status(403).send("Blocked: unsupported Jellycade host.");
@@ -206,8 +199,6 @@ export default async function handler(req, res) {
   const destination = new URL("https://" + host);
   destination.pathname = path;
 
-  // Preserve the original query parameters, excluding the internal
-  // routing parameters used by Vercel's rewrites.
   const search = new URLSearchParams();
 
   for (const [key, rawValue] of Object.entries(req.query)) {
@@ -229,20 +220,19 @@ export default async function handler(req, res) {
   const headers = new Headers();
 
   for (const [name, rawValue] of Object.entries(req.headers)) {
-    if (rawValue === undefined) continue;
-    if (Array.isArray(rawValue)) continue;
+    if (rawValue === undefined || Array.isArray(rawValue)) continue;
 
     const lower = name.toLowerCase();
 
-    if (
-      lower === "host" ||
-      lower === "connection" ||
-      lower === "content-length" ||
-      lower === "cf-connecting-ip" ||
-      lower === "cf-ray" ||
-      lower === "x-forwarded-for" ||
-      lower === "accept-encoding"
-    ) {
+    if ([
+      "host",
+      "connection",
+      "content-length",
+      "cf-connecting-ip",
+      "cf-ray",
+      "x-forwarded-for",
+      "accept-encoding",
+    ].includes(lower)) {
       continue;
     }
 
@@ -251,7 +241,7 @@ export default async function handler(req, res) {
 
   headers.set("accept-encoding", "identity");
 
-  // Do not send the site's login credentials to a separate CDN host.
+  // Never forward site credentials to a separate CDN.
   if (!isMainHost(host)) {
     headers.delete("cookie");
     headers.delete("authorization");
@@ -268,12 +258,10 @@ export default async function handler(req, res) {
       const ref = new URL(referer);
 
       if (ref.origin === origin) {
-        const refCdn = getCdnFromReferer(req, origin);
-
         headers.set(
           "referer",
-          refCdn
-            ? `https://${refCdn}/`
+          cdnFromReferer
+            ? `https://${cdnFromReferer}/`
             : `https://jellycade.com${ref.pathname}${ref.search}`
         );
       }
@@ -307,7 +295,6 @@ export default async function handler(req, res) {
   const outHeaders = new Headers(upstream.headers);
   const contentType = outHeaders.get("content-type") || "";
 
-  // Keep redirects inside the restricted proxy.
   const location = outHeaders.get("location");
 
   if (location) {
@@ -318,11 +305,10 @@ export default async function handler(req, res) {
         outHeaders.set("location", proxyPath(target, origin));
       }
     } catch {
-      // Leave unrelated redirect locations unchanged.
+      // Keep unrelated redirects unchanged.
     }
   }
 
-  // Only keep cookies for the primary Jellycade website.
   if (!isMainHost(host)) {
     outHeaders.delete("set-cookie");
   } else if (typeof outHeaders.getSetCookie === "function") {
@@ -337,7 +323,6 @@ export default async function handler(req, res) {
     }
   }
 
-  // Apply the embedding policy agreed for this proxy.
   for (const name of [
     "content-security-policy",
     "content-security-policy-report-only",
@@ -355,11 +340,8 @@ export default async function handler(req, res) {
           .join("; ");
       }
 
-      if (value) {
-        outHeaders.set(name, value);
-      } else {
-        outHeaders.delete(name);
-      }
+      if (value) outHeaders.set(name, value);
+      else outHeaders.delete(name);
     }
   }
 
@@ -381,7 +363,6 @@ export default async function handler(req, res) {
     return res.end();
   }
 
-  // Rewrite textual content so its Jellycade links use the proxy.
   if (
     /text\/html|javascript|ecmascript|text\/css|application\/json|application\/manifest\+json/i
       .test(contentType)
@@ -413,7 +394,6 @@ export default async function handler(req, res) {
     return res.send(text);
   }
 
-  // Stream binary assets such as game images and files.
   res.status(upstream.status);
 
   for (const [name, value] of outHeaders) {
