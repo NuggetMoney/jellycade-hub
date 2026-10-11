@@ -167,7 +167,8 @@ export default async function handler(req, res) {
 
   let path = String(incomingPath);
   const cdnFromReferer = getCdnFromReferer(req, origin);
-
+const rbrCdnHost =
+  "01a05b8d-9300-73d9-884f-d36df191f6c3.jellycade-cdn.com";
   // Route proxy URLs only to approved Jellycade hosts.
   if (path.startsWith("/_proxy/")) {
     const rest = path.slice("/_proxy/".length);
@@ -179,11 +180,14 @@ export default async function handler(req, res) {
     if (allowedHost(candidate)) {
       host = candidate;
       path = slash === -1 ? "/" : rest.slice(slash);
-    } else if (cdnFromReferer && !req.query.__host) {
-      // Legacy game files may request /_proxy/index.wasm.
-      host = cdnFromReferer;
-      path = "/" + rest;
-    } else {
+    } else if (
+  !req.query.__host &&
+  (cdnFromReferer || rbrCdnHost)
+) {
+  // Route RBR's legacy game-file paths to its known CDN.
+  host = cdnFromReferer || rbrCdnHost;
+  path = "/" + rest;
+} else {
       return res.status(403).send("Blocked: unsupported Jellycade host.");
     }
   } else if (cdnFromReferer && !req.query.__host) {
