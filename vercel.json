@@ -12,11 +12,11 @@
     },
     {
       "source": "/",
-      "destination": "/api/jellycade?__path=/"
+      "destination": "/index.html"
     },
     {
-      "source": "/:path((?!api/jellycade).*)",
-      "destination": "/api/jellycade?__path=/:path"
+      "source": "/((?!api/jellycade(?:\\?.*)?$).*)",
+      "destination": "/api/jellycade?__path=/$1"
     }
   ]
 }
