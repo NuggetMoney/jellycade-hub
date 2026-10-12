@@ -251,28 +251,8 @@ const rbrCdnHost =
     headers.delete("authorization");
   }
 
-  if (headers.get("origin") === origin) {
-    headers.set("origin", "https://jellycade.com");
-  }
-
-  const referer = headers.get("referer");
-
-  if (referer) {
-    try {
-      const ref = new URL(referer);
-
-      if (ref.origin === origin) {
-        headers.set(
-          "referer",
-          cdnFromReferer
-            ? `https://${cdnFromReferer}/`
-            : `https://jellycade.com${ref.pathname}${ref.search}`
-        );
-      }
-    } catch {
-      headers.delete("referer");
-    }
-  }
+  // Preserve the real browser Origin and Referer. Replacing them with
+  // jellycade.com would impersonate the provider's trusted origin.
 
   let body;
 
