@@ -26,6 +26,14 @@ function getValue(value) {
   return Array.isArray(value) ? value[0] : value;
 }
 
+function routeLabel(path) {
+  if (path === "/api/presence/end") return "presence-end";
+  if (path === "/api/presence/heartbeat") return "presence-heartbeat";
+  if (path === "/api/catalog.json") return "catalog";
+  if (path.startsWith("/api/")) return "jellycade-api";
+  return "other";
+}
+
 function proxyPath(target, origin) {
   if (isMainHost(target.hostname)) {
     return target.pathname + target.search + target.hash;
@@ -160,6 +168,11 @@ export default async function handler(req, res) {
     ["POST", "PUT", "PATCH", "DELETE"].includes(requestedMethod) &&
     req.headers.origin !== origin
   ) {
+    console.warn("[jellycade-proxy] local origin check rejected presence write", {
+      method: req.method,
+      route: routeLabel(requestPath),
+      originPresent: Boolean(req.headers.origin),
+    });
     return res.status(403).json({
       error: "Cross-origin presence write blocked by Jellycade Hub proxy.",
     });
@@ -304,11 +317,7 @@ const rbrCdnHost =
     console.warn("[jellycade-proxy] upstream 403", {
       method: req.method,
       upstreamHost: host,
-      route: path === "/api/presence/end"
-        ? "presence-end"
-        : path === "/api/presence/heartbeat"
-          ? "presence-heartbeat"
-          : "other",
+      route: routeLabel(path),
     });
   }
 

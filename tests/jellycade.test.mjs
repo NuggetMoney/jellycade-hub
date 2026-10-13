@@ -5,7 +5,7 @@ import { finished } from "node:stream/promises";
 import test from "node:test";
 import jellycade from "../api/jellycade.js";
 
-const previewHost = "jellycade-fcntz1fb0-nuggetmoney.vercel.app";
+const previewHost = "jellycade-k09xd1ewj-nuggetmoney.vercel.app";
 const previewOrigin = `https://${previewHost}`;
 
 function makeRequest({ method, path, origin = previewOrigin, headers = {}, body }) {
@@ -78,19 +78,22 @@ test("same-origin presence write is forwarded with the real Origin", async () =>
   }
 });
 
-test("cross-origin presence write is rejected before forwarding", async () => {
+test("cross-origin heartbeat is rejected locally before forwarding", async () => {
   const originalFetch = globalThis.fetch;
+  const originalWarn = console.warn;
   let fetchCalled = false;
+  const logs = [];
   globalThis.fetch = async () => {
     fetchCalled = true;
     throw new Error("cross-origin request must not reach upstream");
   };
+  console.warn = (...args) => logs.push(args);
   try {
     const response = makeResponse();
     await jellycade(
       makeRequest({
         method: "POST",
-        path: "/api/presence/end",
+        path: "/api/presence/heartbeat",
         origin: "https://untrusted.example",
         body: "{}",
       }),
@@ -103,8 +106,53 @@ test("cross-origin presence write is rejected before forwarding", async () => {
       error: "Cross-origin presence write blocked by Jellycade Hub proxy.",
     });
     assert.equal(fetchCalled, false);
+    assert.deepEqual(logs[0], ["[jellycade-proxy] local origin check rejected presence write", {
+      method: "POST",
+      route: "presence-heartbeat",
+      originPresent: true,
+    }]);
   } finally {
     globalThis.fetch = originalFetch;
+    console.warn = originalWarn;
+  }
+});
+
+test("same-origin heartbeat upstream 403 is distinguishable from local rejection", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalWarn = console.warn;
+  const logs = [];
+  let forwardedOrigin;
+  globalThis.fetch = async (_url, options) => {
+    forwardedOrigin = options.headers.get("origin");
+    return new Response('{"message":"cross-origin presence write"}', {
+      status: 403,
+      headers: { "content-type": "application/json; charset=utf-8" },
+    });
+  };
+  console.warn = (...args) => logs.push(args);
+  try {
+    const response = makeResponse();
+    await jellycade(
+      makeRequest({
+        method: "POST",
+        path: "/api/presence/heartbeat",
+        body: '{"state":"active"}',
+      }),
+      response,
+    );
+    await finished(response);
+
+    assert.equal(forwardedOrigin, previewOrigin);
+    assert.equal(response.statusCode, 403);
+    assert.equal(response.bodyText(), '{"message":"cross-origin presence write"}');
+    assert.deepEqual(logs[0], ["[jellycade-proxy] upstream 403", {
+      method: "POST",
+      upstreamHost: "jellycade.com",
+      route: "presence-heartbeat",
+    }]);
+  } finally {
+    globalThis.fetch = originalFetch;
+    console.warn = originalWarn;
   }
 });
 
@@ -159,6 +207,40 @@ test("upstream presence 403 is forwarded and logs no request secrets", async () 
   } finally {
     globalThis.fetch = originalFetch;
     console.warn = originalWarn;
+  }
+});
+
+test("upstream catalog and game API 403s are labeled without logging URL data", async (t) => {
+  for (const [path, expectedRoute] of [
+    ["/api/catalog.json", "catalog"],
+    ["/api/matchmaking/join", "jellycade-api"],
+  ]) {
+    await t.test(path, async () => {
+      const originalFetch = globalThis.fetch;
+      const originalWarn = console.warn;
+      const logs = [];
+      globalThis.fetch = async () => new Response("denied", { status: 403 });
+      console.warn = (...args) => logs.push(args);
+      try {
+        const response = makeResponse();
+        await jellycade(
+          makeRequest({
+            method: "GET",
+            path,
+            headers: { cookie: "must-not-be-logged" },
+          }),
+          response,
+        );
+        await finished(response);
+
+        assert.equal(response.statusCode, 403);
+        assert.equal(logs[0][1].route, expectedRoute);
+        assert.equal(JSON.stringify(logs).includes("must-not-be-logged"), false);
+      } finally {
+        globalThis.fetch = originalFetch;
+        console.warn = originalWarn;
+      }
+    });
   }
 });
 
