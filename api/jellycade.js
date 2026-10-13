@@ -142,6 +142,28 @@ export const config = {
 
 export default async function handler(req, res) {
   const origin = `https://${req.headers.host}`;
+  const requestPath = String(
+    getValue(req.query.__path) ?? getValue(req.query.path) ?? "/en"
+  );
+  const requestedMethod = req.method === "OPTIONS"
+    ? String(req.headers["access-control-request-method"] || "").toUpperCase()
+    : req.method;
+  const isPresenceWrite =
+    requestPath === "/api/presence/heartbeat" ||
+    requestPath === "/api/presence/end";
+
+  // Presence writes are only meant to be initiated by the Hub page itself.
+  // Keep the browser's Origin intact when forwarding; Jellycade must authorize
+  // the Hub domain separately for these requests to succeed upstream.
+  if (
+    isPresenceWrite &&
+    ["POST", "PUT", "PATCH", "DELETE"].includes(requestedMethod) &&
+    req.headers.origin !== origin
+  ) {
+    return res.status(403).json({
+      error: "Cross-origin presence write blocked by Jellycade Hub proxy.",
+    });
+  }
 
   if (req.method === "OPTIONS") {
     res.setHeader("Access-Control-Allow-Origin", origin);
@@ -282,7 +304,11 @@ const rbrCdnHost =
     console.warn("[jellycade-proxy] upstream 403", {
       method: req.method,
       upstreamHost: host,
-      route: path === "/api/presence/end" ? "presence-end" : "other",
+      route: path === "/api/presence/end"
+        ? "presence-end"
+        : path === "/api/presence/heartbeat"
+          ? "presence-heartbeat"
+          : "other",
     });
   }
 
