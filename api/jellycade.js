@@ -276,6 +276,16 @@ const rbrCdnHost =
     return res.status(502).send("Could not connect to Jellycade.");
   }
 
+  if (upstream.status === 403) {
+    // Log only a fixed route label and approved upstream host; never log
+    // paths, query values, cookies, authorization, or request bodies.
+    console.warn("[jellycade-proxy] upstream 403", {
+      method: req.method,
+      upstreamHost: host,
+      route: path === "/api/presence/end" ? "presence-end" : "other",
+    });
+  }
+
   const outHeaders = new Headers(upstream.headers);
   const contentType = outHeaders.get("content-type") || "";
 

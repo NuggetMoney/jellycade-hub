@@ -15,6 +15,10 @@
       "destination": "/api/jellycade?__path=/_proxy/index.worker.js"
     },
     {
+      "source": "/_proxy/index.audio.worklet.js",
+      "destination": "/api/jellycade?__path=/_proxy/index.audio.worklet.js"
+    },
+    {
       "source": "/_proxy/:host/:path*",
       "destination": "/api/jellycade?__host=:host&__path=/:path*"
     },
