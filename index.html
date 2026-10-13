@@ -477,15 +477,15 @@
         <div>
           <p class="eyebrow">Your next game is waiting</p>
           <h1 id="hero-title">Ready to <span>drop in?</span></h1>
-          <p class="hero-copy">A simple launchpad for Jellycade. Pick a game, sign in with the people who made it, and get straight to playing.</p>
+          <p class="hero-copy">Browse Jellycade through the Hub proxy, or open the official site directly. Sign-in and game services are provided by Jellycade.</p>
           <div class="actions">
-            <a class="button button-primary" href="https://jellycade.com/en/games/rocket-bot-royale" target="_blank" rel="noopener noreferrer">
-              Play Rocket Bot Royale
+            <a class="button button-primary" href="/en/games/rocket-bot-royale">
+              Open Rocket Bot Royale through Hub
               <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </a>
-            <a class="button button-secondary" href="https://jellycade.com/en/login" target="_blank" rel="noopener noreferrer">Sign in on Jellycade</a>
+            <a class="button button-secondary" href="/en">Browse Jellycade through Hub</a>
           </div>
-          <p class="fine-print">Sign in on Jellycade's official site. This Hub does not provide its own login form.</p>
+          <p class="fine-print">The Hub forwards pages to Jellycade while keeping your real browser origin. If sign-in or a game request is denied, use the official site or ask Jellycade to authorize this Hub domain.</p>
         </div>
 
         <div class="art" role="img" aria-label="Illustration of a rocket bot floating in space">
@@ -508,14 +508,15 @@
           <div class="game-info">
             <p class="game-type">Browser game · Multiplayer</p>
             <h3>Rocket Bot Royale</h3>
-            <p>Rocket-jumping tanks, a shrinking arena, and one more match. Open the official game page to sign in and play on Jellycade.</p>
-            <a class="button button-primary" href="https://jellycade.com/en/games/rocket-bot-royale" target="_blank" rel="noopener noreferrer">Open the official game page</a>
+            <p>Rocket-jumping tanks, a shrinking arena, and one more match. Open the game through the Hub proxy, or choose the official Jellycade page if the provider denies the Hub domain.</p>
+            <a class="button button-primary" href="/en/games/rocket-bot-royale">Open through Hub proxy</a>
+            <a class="text-link" href="https://jellycade.com/en/games/rocket-bot-royale" target="_blank" rel="noopener noreferrer">Open official Jellycade page ↗</a>
           </div>
         </article>
 
         <aside class="security-note">
           <span aria-hidden="true">ⓘ</span>
-          <span><strong>Getting a 403 on the Hub game page?</strong> The provider may need to authorize this Hub domain. Use the official Jellycade link above in the meantime; this Hub won’t work around sign-in or security checks.</span>
+          <span><strong>Getting a 403 on a proxied page?</strong> Jellycade may need to authorize <code>jellycade-hub.vercel.app</code> for its website, authentication, Turnstile, or game services. This Hub preserves your browser origin and does not work around provider security checks. Use the official Jellycade link above in the meantime.</span>
         </aside>
       </section>
     </main>
