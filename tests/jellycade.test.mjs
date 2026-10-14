@@ -8,11 +8,18 @@ import jellycade from "../api/jellycade.js";
 const previewHost = "jellycade-k09xd1ewj-nuggetmoney.vercel.app";
 const previewOrigin = `https://${previewHost}`;
 
-function makeRequest({ method, path, origin = previewOrigin, headers = {}, body }) {
+function makeRequest({
+  method,
+  path,
+  origin = previewOrigin,
+  headers = {},
+  body,
+  host = previewHost,
+}) {
   return {
     method,
     query: { __path: path },
-    headers: { host: previewHost, ...(origin ? { origin } : {}), ...headers },
+    headers: { host, ...(origin ? { origin } : {}), ...headers },
     async *[Symbol.asyncIterator]() {
       if (body !== undefined) yield Buffer.from(body);
     },
@@ -73,6 +80,35 @@ test("same-origin presence write is forwarded with the real Origin", async () =>
     assert.equal(forwarded.options.method, "POST");
     assert.equal(forwarded.options.headers.get("origin"), previewOrigin);
     assert.equal(forwarded.options.body.toString(), '{"state":"active"}');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("same-origin localhost presence writes use the local HTTP origin", async () => {
+  const originalFetch = globalThis.fetch;
+  let forwarded;
+  globalThis.fetch = async (url, options) => {
+    forwarded = { url: String(url), options };
+    return new Response(null, { status: 204 });
+  };
+  try {
+    const response = makeResponse();
+    await jellycade(
+      makeRequest({
+        method: "POST",
+        path: "/api/presence/heartbeat",
+        host: "localhost:3000",
+        origin: "http://localhost:3000",
+        headers: { "x-forwarded-proto": "http" },
+        body: "{}",
+      }),
+      response,
+    );
+    await finished(response);
+
+    assert.equal(response.statusCode, 204);
+    assert.equal(forwarded.options.headers.get("origin"), "http://localhost:3000");
   } finally {
     globalThis.fetch = originalFetch;
   }

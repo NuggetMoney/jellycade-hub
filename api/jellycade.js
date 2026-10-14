@@ -26,6 +26,19 @@ function getValue(value) {
   return Array.isArray(value) ? value[0] : value;
 }
 
+function getRequestOrigin(req) {
+  const host = String(getValue(req.headers.host) || "");
+  const forwardedProtocol = String(
+    getValue(req.headers["x-forwarded-proto"]) || ""
+  ).split(",")[0].trim().toLowerCase();
+  const isLoopback = /^(localhost|127(?:\.\d{1,3}){3}|\[::1\])(?::\d+)?$/i.test(host);
+  const protocol = forwardedProtocol === "https" || !isLoopback
+    ? "https:"
+    : "http:";
+
+  return `${protocol}//${host}`;
+}
+
 function routeLabel(path) {
   if (path === "/api/presence/end") return "presence-end";
   if (path === "/api/presence/heartbeat") return "presence-heartbeat";
@@ -149,7 +162,7 @@ export const config = {
 };
 
 export default async function handler(req, res) {
-  const origin = `https://${req.headers.host}`;
+  const origin = getRequestOrigin(req);
   const requestPath = String(
     getValue(req.query.__path) ?? getValue(req.query.path) ?? "/en"
   );
