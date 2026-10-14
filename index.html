@@ -581,49 +581,6 @@
 
     .game-info .button { margin-top: auto; }
 
-    .embed-panel {
-      grid-column: 1 / -1;
-      margin-top: 16px;
-      overflow: hidden;
-      border: 1px solid rgb(197 181 255 / 24%);
-      border-radius: 18px;
-      background: #080f1b;
-    }
-
-    .embed-toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 11px 14px;
-      border-bottom: 1px solid var(--line);
-      color: var(--muted);
-      font-size: 11px;
-    }
-
-    .embed-close {
-      padding: 7px 10px;
-      border: 1px solid var(--line);
-      border-radius: 9px;
-      background: transparent;
-      color: var(--text);
-      font: inherit;
-      cursor: pointer;
-    }
-
-    .embed-close:hover { border-color: rgb(197 181 255 / 50%); }
-
-    .game-frame {
-      display: block;
-      width: 100%;
-      min-height: 320px;
-      aspect-ratio: 16 / 9;
-      border: 0;
-      background: #080f1b;
-    }
-
-    .embed-note { margin: 10px 0 0; color: #9eb2c2; font-size: 12px; line-height: 1.55; }
-
     .security-note {
       display: flex;
       align-items: flex-start;
@@ -681,7 +638,6 @@
       .hero-copy { font-size: 15px; }
       .button { width: 100%; }
       .game-card { padding: 15px; }
-      .game-frame { min-height: 240px; }
       .section-heading { align-items: flex-start; }
       .security-note { margin-bottom: 50px; }
       .footer { flex-direction: column; gap: 9px; }
@@ -777,16 +733,10 @@
             <p class="game-type game-type-winterpixel">Winterpixel · Browser game</p>
             <h3 id="rbr2-title">Rocket Bot Royale 2</h3>
             <div class="game-tags" aria-label="Game details"><span class="game-tag game-tag-highlight">Featured</span><span class="game-tag">Action</span><span class="game-tag">Rocket arena</span></div>
-            <p>Try the Winterpixel sequel here in the Hub. The game only loads after you press the button, so it uses no game resources while closed.</p>
+            <p>Open the sequel on Winterpixel. The game may refuse to load inside other sites, so this button takes you to its official page.</p>
             <div class="actions" style="margin-top:0">
-              <button class="button button-primary" id="load-rbr2" type="button" aria-expanded="false" aria-controls="rbr2-embed">Play Rocket Bot Royale 2 here</button>
-              <a class="button button-secondary" href="https://rocketbotroyale2.winterpixel.io/" target="_blank" rel="noopener noreferrer">Open directly ↗</a>
+              <a class="button button-primary" href="https://rocketbotroyale2.winterpixel.io/" target="_blank" rel="noopener noreferrer">Play Rocket Bot Royale 2 on Winterpixel ↗</a>
             </div>
-            <p class="embed-note" id="rbr2-status" aria-live="polite">The embedded game may be unavailable if Winterpixel blocks framing; use Open directly in that case.</p>
-          </div>
-          <div class="embed-panel" id="rbr2-embed" hidden>
-            <div class="embed-toolbar"><span>Rocket Bot Royale 2 · Winterpixel</span><button class="embed-close" id="close-rbr2" type="button">Close game</button></div>
-            <div id="rbr2-frame-slot"></div>
           </div>
         </article>
 
@@ -874,47 +824,6 @@
       });
     })();
 
-    (() => {
-      const loadButton = document.getElementById("load-rbr2");
-      const closeButton = document.getElementById("close-rbr2");
-      const panel = document.getElementById("rbr2-embed");
-      const frameSlot = document.getElementById("rbr2-frame-slot");
-      const status = document.getElementById("rbr2-status");
-      if (!loadButton || !closeButton || !panel || !frameSlot) return;
-
-      loadButton.addEventListener("click", () => {
-        if (!frameSlot.firstElementChild) {
-          const frame = document.createElement("iframe");
-          frame.className = "game-frame";
-          frame.title = "Rocket Bot Royale 2 by Winterpixel";
-          frame.src = "https://rocketbotroyale2.winterpixel.io/";
-          frame.loading = "eager";
-          frame.referrerPolicy = "strict-origin-when-cross-origin";
-          frame.allow = "autoplay; fullscreen; gamepad; pointer-lock";
-          frame.allowFullscreen = true;
-          frameSlot.append(frame);
-        }
-        panel.hidden = false;
-        loadButton.setAttribute("aria-expanded", "true");
-        loadButton.textContent = "Resume embedded game";
-        if (status) status.textContent = "If the game area stays blank, Winterpixel may block embedding. Open the game directly instead.";
-        const scrollBehavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
-        panel.scrollIntoView({ behavior: scrollBehavior, block: "nearest" });
-      });
-
-      closeButton.addEventListener("click", () => {
-        const frame = frameSlot.firstElementChild;
-        if (frame) {
-          frame.src = "about:blank";
-          frame.remove();
-        }
-        panel.hidden = true;
-        loadButton.setAttribute("aria-expanded", "false");
-        loadButton.textContent = "Play Rocket Bot Royale 2 here";
-        if (status) status.textContent = "Embedded game closed. It no longer uses game resources.";
-        loadButton.focus();
-      });
-    })();
   </script>
 </body>
 </html>
