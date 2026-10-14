@@ -187,6 +187,8 @@
       border-radius: 14px;
       font-size: 14px;
       font-weight: 740;
+      font-family: inherit;
+      cursor: pointer;
       text-decoration: none;
       transition: transform .2s cubic-bezier(.2,.8,.2,1), background .2s ease, border-color .2s ease, box-shadow .2s ease, filter .2s ease;
     }
@@ -480,6 +482,7 @@
     }
 
     .game-card:hover { transform: translateY(-4px); border-color: rgb(132 202 255 / 30%); box-shadow: 0 24px 65px rgb(0 0 0 / 20%); }
+    .game-card + .game-card { margin-top: 16px; }
 
     .game-art {
       display: grid;
@@ -493,6 +496,14 @@
         linear-gradient(155deg, #1c3548, #0c1a28);
     }
 
+    .game-art-two {
+      background:
+        radial-gradient(ellipse at 50% 58%, rgb(255 158 116 / 22%), transparent 48%),
+        linear-gradient(145deg, #382744, #171a32 75%);
+    }
+
+    .game-art-two svg { width: 126px; height: 126px; }
+
     .game-art .tank { transform: scale(.78) rotate(-8deg); }
 
     .game-info { display: flex; flex-direction: column; align-items: flex-start; }
@@ -505,6 +516,8 @@
       letter-spacing: .14em;
       text-transform: uppercase;
     }
+
+    .game-type-winterpixel { color: var(--violet); }
 
     .game-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; }
     .game-tag {
@@ -568,6 +581,49 @@
 
     .game-info .button { margin-top: auto; }
 
+    .embed-panel {
+      grid-column: 1 / -1;
+      margin-top: 16px;
+      overflow: hidden;
+      border: 1px solid rgb(197 181 255 / 24%);
+      border-radius: 18px;
+      background: #080f1b;
+    }
+
+    .embed-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .embed-close {
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .embed-close:hover { border-color: rgb(197 181 255 / 50%); }
+
+    .game-frame {
+      display: block;
+      width: 100%;
+      min-height: 320px;
+      aspect-ratio: 16 / 9;
+      border: 0;
+      background: #080f1b;
+    }
+
+    .embed-note { margin: 10px 0 0; color: #9eb2c2; font-size: 12px; line-height: 1.55; }
+
     .security-note {
       display: flex;
       align-items: flex-start;
@@ -625,6 +681,7 @@
       .hero-copy { font-size: 15px; }
       .button { width: 100%; }
       .game-card { padding: 15px; }
+      .game-frame { min-height: 240px; }
       .section-heading { align-items: flex-start; }
       .security-note { margin-bottom: 50px; }
       .footer { flex-direction: column; gap: 9px; }
@@ -701,6 +758,35 @@
             <p>Rocket-jumping tanks, a shrinking arena, and one more match. Open the game through the Hub proxy, or choose the official Jellycade page if the provider denies the Hub domain.</p>
             <a class="button button-primary" href="/en/games/rocket-bot-royale">Open through Hub proxy</a>
             <a class="text-link" href="https://jellycade.com/en/games/rocket-bot-royale" target="_blank" rel="noopener noreferrer">Open official Jellycade page ↗</a>
+          </div>
+        </article>
+
+        <article class="game-card" aria-labelledby="rbr2-title">
+          <div class="game-art game-art-two" role="img" aria-label="Illustration of rockets over an arena">
+            <svg viewBox="0 0 128 128" fill="none" aria-hidden="true">
+              <circle cx="64" cy="64" r="48" stroke="rgb(197 181 255 / 22%)" />
+              <circle cx="64" cy="64" r="35" stroke="rgb(255 217 139 / 18%)" stroke-dasharray="3 6" />
+              <path d="M72 30c15 9 20 25 18 39L68 91 48 71l22-22 2-19Z" fill="#d7c6ff" stroke="#f1eaff" stroke-width="2" stroke-linejoin="round"/>
+              <path d="m48 71-13 4-7 14 20-2m20 4-4 13-14 7 2-20" fill="#ffbe86" stroke="#ffe3c5" stroke-width="2" stroke-linejoin="round"/>
+              <circle cx="72" cy="55" r="7" fill="#5d537e" stroke="#fff" stroke-width="2"/>
+              <path d="m44 91-7 7m54-54 7-7" stroke="#ffd98b" stroke-width="3" stroke-linecap="round"/>
+              <path d="m57 91-5 5m29-58 5-5" stroke="#9af5c9" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="game-info">
+            <p class="game-type game-type-winterpixel">Winterpixel · Browser game</p>
+            <h3 id="rbr2-title">Rocket Bot Royale 2</h3>
+            <div class="game-tags" aria-label="Game details"><span class="game-tag game-tag-highlight">Featured</span><span class="game-tag">Action</span><span class="game-tag">Rocket arena</span></div>
+            <p>Try the Winterpixel sequel here in the Hub. The game only loads after you press the button, so it uses no game resources while closed.</p>
+            <div class="actions" style="margin-top:0">
+              <button class="button button-primary" id="load-rbr2" type="button" aria-expanded="false" aria-controls="rbr2-embed">Play Rocket Bot Royale 2 here</button>
+              <a class="button button-secondary" href="https://rocketbotroyale2.winterpixel.io/" target="_blank" rel="noopener noreferrer">Open directly ↗</a>
+            </div>
+            <p class="embed-note" id="rbr2-status" aria-live="polite">The embedded game may be unavailable if Winterpixel blocks framing; use Open directly in that case.</p>
+          </div>
+          <div class="embed-panel" id="rbr2-embed" hidden>
+            <div class="embed-toolbar"><span>Rocket Bot Royale 2 · Winterpixel</span><button class="embed-close" id="close-rbr2" type="button">Close game</button></div>
+            <div id="rbr2-frame-slot"></div>
           </div>
         </article>
 
@@ -785,6 +871,48 @@
       });
       document.addEventListener("focusin", (event) => {
         if (event.target instanceof Element && event.target.closest(".button, .nav-signin")) playMenuSound();
+      });
+    })();
+
+    (() => {
+      const loadButton = document.getElementById("load-rbr2");
+      const closeButton = document.getElementById("close-rbr2");
+      const panel = document.getElementById("rbr2-embed");
+      const frameSlot = document.getElementById("rbr2-frame-slot");
+      const status = document.getElementById("rbr2-status");
+      if (!loadButton || !closeButton || !panel || !frameSlot) return;
+
+      loadButton.addEventListener("click", () => {
+        if (!frameSlot.firstElementChild) {
+          const frame = document.createElement("iframe");
+          frame.className = "game-frame";
+          frame.title = "Rocket Bot Royale 2 by Winterpixel";
+          frame.src = "https://rocketbotroyale2.winterpixel.io/";
+          frame.loading = "eager";
+          frame.referrerPolicy = "strict-origin-when-cross-origin";
+          frame.allow = "autoplay; fullscreen; gamepad; pointer-lock";
+          frame.allowFullscreen = true;
+          frameSlot.append(frame);
+        }
+        panel.hidden = false;
+        loadButton.setAttribute("aria-expanded", "true");
+        loadButton.textContent = "Resume embedded game";
+        if (status) status.textContent = "If the game area stays blank, Winterpixel may block embedding. Open the game directly instead.";
+        const scrollBehavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+        panel.scrollIntoView({ behavior: scrollBehavior, block: "nearest" });
+      });
+
+      closeButton.addEventListener("click", () => {
+        const frame = frameSlot.firstElementChild;
+        if (frame) {
+          frame.src = "about:blank";
+          frame.remove();
+        }
+        panel.hidden = true;
+        loadButton.setAttribute("aria-expanded", "false");
+        loadButton.textContent = "Play Rocket Bot Royale 2 here";
+        if (status) status.textContent = "Embedded game closed. It no longer uses game resources.";
+        loadButton.focus();
       });
     })();
   </script>
