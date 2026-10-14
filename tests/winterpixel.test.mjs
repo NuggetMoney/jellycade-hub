@@ -4,7 +4,7 @@ import { finished } from "node:stream/promises";
 import test from "node:test";
 import winterpixel from "../api/winterpixel.js";
 
-const previewOrigin = "https://jellycade-k09xd1ewj-nuggetmoney.vercel.app";
+const previewOrigin = "https://jellycade-n77en68pz-nuggetmoney.vercel.app";
 
 function makeResponse() {
   const response = new Writable({

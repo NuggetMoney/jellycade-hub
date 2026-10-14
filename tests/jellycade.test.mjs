@@ -5,7 +5,7 @@ import { finished } from "node:stream/promises";
 import test from "node:test";
 import jellycade from "../api/jellycade.js";
 
-const previewHost = "jellycade-k09xd1ewj-nuggetmoney.vercel.app";
+const previewHost = "jellycade-n77en68pz-nuggetmoney.vercel.app";
 const previewOrigin = `https://${previewHost}`;
 
 function makeRequest({
@@ -189,6 +189,43 @@ test("same-origin heartbeat upstream 403 is distinguishable from local rejection
   } finally {
     globalThis.fetch = originalFetch;
     console.warn = originalWarn;
+  }
+});
+
+test("Cloudflare text 403 from same-origin heartbeat is forwarded with its trace header", async () => {
+  const originalFetch = globalThis.fetch;
+  let forwardedUrl;
+  globalThis.fetch = async (url, options) => {
+    forwardedUrl = String(url);
+    assert.equal(options.headers.get("origin"), previewOrigin);
+    return new Response("cross-origin presence write", {
+      status: 403,
+      headers: {
+        "content-type": "text/plain; charset=utf-8",
+        "cf-ray": "a4aa55cbdf5a7d61-IAD",
+      },
+    });
+  };
+  try {
+    const response = makeResponse();
+    await jellycade(
+      makeRequest({
+        method: "POST",
+        path: "/api/presence/heartbeat",
+        headers: { "content-type": "application/json" },
+        body: '{"slug":"rocket-bot-royale","state":"active"}',
+      }),
+      response,
+    );
+    await finished(response);
+
+    assert.equal(forwardedUrl, "https://jellycade.com/api/presence/heartbeat");
+    assert.equal(response.statusCode, 403);
+    assert.equal(response.headers["content-type"], "text/plain; charset=utf-8");
+    assert.equal(response.headers["cf-ray"], "a4aa55cbdf5a7d61-IAD");
+    assert.equal(response.bodyText(), "cross-origin presence write");
+  } finally {
+    globalThis.fetch = originalFetch;
   }
 });
 
